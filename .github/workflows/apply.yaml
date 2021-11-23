@@ -1,0 +1,81 @@
+name: terraform - apply
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'project/**.tf'
+    types:
+      - closed
+
+env:
+  terraform_version: 1.0.7
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-20.04
+
+    defaults:
+      run:
+        shell: bash
+
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure GCP credentials
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.TF_ADMIN_KEYFILE }}
+          export_default_credentials: true
+
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.terraform_version }}
+
+      - name: Terraform init
+        id: init
+        run: terraform -chdir=project init
+
+      - name: Terraform plan
+        id: plan
+        run: terraform -chdir=project plan -out=plans/tfplan -no-color
+        continue-on-error: true
+
+      - name: Terraform apply
+        id: apply
+        run: terraform -chdir=project apply plans/tfplan -no-color
+        continue-on-error: true
+
+      - name: Show results
+        uses: actions/github-script@v3
+        env:
+          APPLY: "terraform\n${{ steps.apply.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `
+            #### ℹ️ GitHub Actions
+            - Pusher: @${{ github.actor }}
+            - Action: **${{ github.event_name }}**
+            - Workflow: **${{ github.workflow }}**
+            #### 📖 Terraform Apply \`${{ steps.apply.outcome }}\`
+            <details>
+              <summary>Show Apply</summary>
+            ${ process.env.APPLY }
+            </details>
+            `;
+            github.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+      - name: Status check
+        run: exit $(expr ${{ steps.apply.outputs.exitcode }})
