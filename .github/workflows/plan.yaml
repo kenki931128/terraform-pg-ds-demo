@@ -45,12 +45,12 @@ jobs:
 
       - name: Terraform validate
         id: validate
-        run: terraform -chdir=project validate
+        run: terraform -chdir=project validate -no-color
         continue-on-error: true
 
       - name: Terraform plan
         id: plan
-        run: terraform -chdir=project plan -out=plans/tfplan
+        run: terraform -chdir=project plan -out=plans/tfplan -no-color
         continue-on-error: true
 
       - name: Show results

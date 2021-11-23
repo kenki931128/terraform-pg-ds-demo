@@ -45,12 +45,12 @@ jobs:
 
       - name: Terraform plan
         id: plan
-        run: terraform -chdir=project plan -out=plans/tfplan
+        run: terraform -chdir=project plan -out=plans/tfplan -no-color
         continue-on-error: true
 
       - name: Terraform apply
         id: apply
-        run: terraform -chdir=project apply plans/tfplan
+        run: terraform -chdir=project apply plans/tfplan -no-color
         continue-on-error: true
 
       - name: Show results
