@@ -41,16 +41,16 @@ jobs:
 
       - name: Terraform init
         id: init
-        run: terraform -chdir=project init
+        run: GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS terraform -chdir=project init
 
       - name: Terraform plan
         id: plan
-        run: tterraform -chdir=project plan -out=plans/tfplan
+        run: GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS terraform -chdir=project plan -out=plans/tfplan
         continue-on-error: true
 
       - name: Terraform apply
         id: apply
-        run: terraform -chdir=project apply plans/tfplan
+        run: GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS terraform -chdir=project apply plans/tfplan
         continue-on-error: true
 
       - name: Show results
