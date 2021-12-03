@@ -68,7 +68,11 @@ jobs:
             #### 📖 Terraform Apply \`${{ steps.apply.outcome }}\`
             <details>
               <summary>Show Apply</summary>
+
+            \`\`\`
             ${ process.env.APPLY }
+            \`\`\`
+
             </details>
             `;
             github.issues.createComment({
